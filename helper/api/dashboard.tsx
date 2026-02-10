@@ -64,7 +64,7 @@ const updateProfile = async (email: string, data: updateProfileType) => {
 
 const updatePassword = async (
   email: string,
-  password: { old: string; new: string }
+  password: { old: string; new: string },
 ) => {
   try {
     const profile = await axios.patch(`/api/dashboard/${email}`, password, {
@@ -108,10 +108,33 @@ const transferFund = async (data: FundTransfer) => {
     return null;
   }
 };
+
+const getCardInfo = async () => {
+  try {
+    const card = await axios.get(`/api/card`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return card;
+  } catch (err) {
+    const error = err as AxiosError;
+    if (error.response) {
+      console.log("Error response:", error.response.data);
+      return error.response;
+    } else if (error.request) {
+      console.log("Error request:", error.request);
+    } else {
+      console.log("Error message:", error.message);
+    }
+    return null;
+  }
+};
 export {
   DashboardApi,
   TransactionApi,
   updateProfile,
   updatePassword,
   transferFund,
+  getCardInfo,
 };

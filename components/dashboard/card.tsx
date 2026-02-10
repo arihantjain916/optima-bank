@@ -1,7 +1,18 @@
-import React from "react";
+"use client";
+
+import React, { use, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { getCardInfo } from "@/helper/api/dashboard";
 
 const CardPage = () => {
+  useEffect(() => {
+    async function initalize() {
+      const card = await getCardInfo();
+      console.log("card", card);
+    }
+
+    initalize();
+  }, []);
   return (
     <main className="p-2">
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 mt-2">
