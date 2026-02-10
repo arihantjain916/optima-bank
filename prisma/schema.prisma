@@ -21,6 +21,7 @@ model User {
   sentTransaction     Transaction[] @relation("SentTransactions")
   receivedTransaction Transaction[] @relation("ReceivedTransactions")
   otp                 Otp[]
+  cards               Card[]
 }
 
 model Transaction {
@@ -48,6 +49,23 @@ model Otp {
   sender   User     @relation(fields: [user_otp], references: [email], onDelete: Cascade)
 }
 
+model Card {
+  id                    String     @id @default(cuid()) @map("_id")
+  card_number_encrypted String
+  last4                 String
+  network               String     @default("RuPay")
+  expiry_month          String
+  card_type             CardType   @default(DEBIT)
+  expiry_year           String
+  card_holder_name      String
+  cvv_encrypted         String
+  status                CardStatus @default(ACTIVE)
+  userId                String     @map("user")
+  created_at            DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 enum TransactionType {
   UPI
   NEFT
@@ -56,6 +74,16 @@ enum TransactionType {
 }
 
 enum TransactionMethod {
+  CREDIT
+  DEBIT
+}
+
+enum CardStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum CardType {
   CREDIT
   DEBIT
 }
