@@ -44,7 +44,7 @@ export const OtpPage = (props: { email: string }) => {
         setError(res?.data.data);
       } else {
         setMessage("OTP Verified");
-        router.push(`/dashboard/${email}`);
+        router.push(`/dashboard`);
         reset();
       }
     } catch (err: any) {

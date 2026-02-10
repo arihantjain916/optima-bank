@@ -8,16 +8,18 @@ import { DashboardCard, RecentTransaction } from "./component";
 import { Overview } from "./component/overview";
 import { TransactionType } from "@/types/transactionType";
 import { checkIsLogin } from "@/helper/checkAuth";
-export function Dashboard(props: { email: string }) {
+import getUserInfo from "@/helper/getuserinfofromtoken";
+import { JwtType } from "@/types/jwtPayload";
+export function Dashboard(props: { email?: string }) {
   const isLogin = checkIsLogin();
   const [userdata, setUserData] = useState<DashboardType>();
   const [transactionData, setTransactionData] = useState<TransactionType[]>([]);
-  async function fetchData() {
-    const res = await DashboardApi(props.email);
-       if (res?.status != 200) {
+  async function fetchData(email: string) {
+    const res = await DashboardApi(email);
+    if (res?.status != 200) {
       console.log(res?.data.data);
       return;
-    } 
+    }
     setUserData(res?.data.data);
 
     await fetchTransaction(res?.data.data?.account_no);
@@ -25,15 +27,26 @@ export function Dashboard(props: { email: string }) {
 
   async function fetchTransaction(account_no: string) {
     const res = await TransactionApi(account_no);
-       if (res?.status != 200) {
+    if (res?.status != 200) {
       console.log(res?.data.data);
       return;
-    } 
+    }
     setTransactionData(res?.data.data);
   }
 
+  // useEffect(() => {
+  //   fetchData();
+  // }, []);
+
   useEffect(() => {
-    fetchData();
+    async function initialize() {
+      const token = getUserInfo() as JwtType;
+      const email = token?.data?.email;
+      if (email) {
+        await fetchData(email);
+      }
+    }
+    initialize();
   }, []);
 
   if (!isLogin) {
