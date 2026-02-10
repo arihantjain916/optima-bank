@@ -63,7 +63,16 @@ model Card {
   userId                String     @map("user")
   created_at            DateTime   @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  encryptInfo CardEncryptInfo?
+}
+
+model CardEncryptInfo {
+  id     String @id @default(cuid()) @map("_id")
+  cardId String @unique
+  iv     String
+  tag    String
+  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
 }
 
 enum TransactionType {

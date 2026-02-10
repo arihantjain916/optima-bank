@@ -4,6 +4,8 @@ import { generateOTP } from "@/helper/generateRandomNumber";
 import prisma from "@/lib/prisma";
 import { isDateExpired } from "@/helper/checkOtpExp";
 import axios from "axios";
+import { encrypt } from "@/helper/encrypt";
+import moment from "moment";
 
 export async function GET(
   req: NextRequest,
@@ -100,6 +102,14 @@ export async function POST(
         otp: data.otp,
         user_otp: params.email,
       },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (!fetchOtp)
@@ -108,11 +118,73 @@ export async function POST(
     if (!isDateExpired(fetchOtp?.otpExp!))
       return NextResponse.json({ error: "OTP Expired" }, { status: 400 });
 
+    const res = await generateCardForUsers(fetchOtp.sender);
+    if (!res)
+      return NextResponse.json(
+        { error: "Something went wrong" },
+        { status: 500 },
+      );
+
     return NextResponse.json(
       { data: "OTP Verified", success: true },
       { status: 200 },
     );
   } catch (error) {
     return NextResponse.json({ error: error }, { status: 500 });
+  }
+}
+
+async function generateCardForUsers(user: any) {
+  try {
+    const generateString = generateOTP(12);
+    const { iv, data, tag } = encrypt(
+      generateString,
+      process.env.ENCRYPT_TOKEN!,
+    );
+
+    if (!data) {
+      throw new Error("Error encrypting data");
+    }
+
+    const isCardAlreadyExist = await prisma.card.findFirst({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    if (isCardAlreadyExist) {
+      return true;
+    }
+
+    const expiryYear = moment(new Date()).add(10, "year").format("YYYY");
+    const expiryMonth = moment(new Date()).add(10, "year").format("MM");
+    const last4 = generateString.slice(-4);
+    const card_holder_name = user?.name;
+    const cvv_encrypted = "";
+
+    const res = await prisma.card.create({
+      data: {
+        card_number_encrypted: data,
+        card_holder_name,
+        cvv_encrypted,
+        expiry_month: expiryMonth,
+        expiry_year: expiryYear,
+        last4: last4,
+        userId: user.id,
+        encryptInfo: {
+          create: {
+            iv,
+            tag,
+          },
+        },
+      },
+    });
+
+    if (!res) return false;
+
+    return true;
+  } catch (e: any) {
+    console.log(e);
+    throw new Error(e.message);
   }
 }
