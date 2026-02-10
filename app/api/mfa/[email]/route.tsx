@@ -7,7 +7,7 @@ import axios from "axios";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { email: string } }
+  { params }: { params: { email: string } },
 ) {
   // Data required
   // email id + OTP
@@ -31,36 +31,40 @@ export async function GET(
         },
         {
           status: 500,
-        }
+        },
       );
     }
 
-    const otp = generateOTP();
-    var data = {
-      service_id: process.env.EMAIL_SERVICE_ID,
-      template_id: process.env.EMAIL_TEMPLATE_ID,
-      user_id: process.env.EMAIL_USER_ID,
-      template_params: {
-        email: params.email,
-        otp: otp,
-      },
-    };
+    let otp = "1234";
 
-    const res = await axios.post(
-      "https://api.emailjs.com/api/v1.0/email/send",
-      data,
-      {
-        headers: {
-          "Content-Type": "application/json",
+    if (process.env.NODE_ENV == "production") {
+      otp = generateOTP();
+      var data = {
+        service_id: process.env.EMAIL_SERVICE_ID,
+        template_id: process.env.EMAIL_TEMPLATE_ID,
+        user_id: process.env.EMAIL_USER_ID,
+        template_params: {
+          email: params.email,
+          otp: otp,
         },
-      }
-    );
+      };
 
-    if (!res)
-      return NextResponse.json(
-        { error: "error sending email" },
-        { status: 500 }
+      const res = await axios.post(
+        "https://api.emailjs.com/api/v1.0/email/send",
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
       );
+
+      if (!res)
+        return NextResponse.json(
+          { error: "error sending email" },
+          { status: 500 },
+        );
+    }
 
     // save Otp to DB
     const Expdate = new Date(Date.now());
@@ -76,7 +80,7 @@ export async function GET(
 
     return NextResponse.json(
       { data: "Please Check your email for the OTP", success: true },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return NextResponse.json({ error: error }, { status: 500 });
@@ -85,7 +89,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { email: string } }
+  { params }: { params: { email: string } },
 ) {
   try {
     // data contains otp
@@ -106,7 +110,7 @@ export async function POST(
 
     return NextResponse.json(
       { data: "OTP Verified", success: true },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return NextResponse.json({ error: error }, { status: 500 });
