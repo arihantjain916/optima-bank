@@ -136,7 +136,7 @@ export async function POST(
 
 async function generateCardForUsers(user: any) {
   try {
-    const generateString = generateOTP(12);
+    const generateString = generateOTP(16);
     const { iv, data, tag } = encrypt(
       generateString,
       process.env.ENCRYPT_TOKEN!,
