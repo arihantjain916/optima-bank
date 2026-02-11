@@ -2,7 +2,7 @@
 
 import React, { use, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { getCardInfo } from "@/helper/api/dashboard";
+import { getCardInfo, getCardnumber } from "@/helper/api/dashboard";
 import { BankCard } from "../ui/bankCard";
 import moment from "moment";
 
@@ -16,11 +16,17 @@ const CardPage = () => {
         expiryYear: "",
         cvv: "",
         network: "",
+        id: "",
       },
       showVendor: false,
+      last4: "",
     },
   ]);
-  const [showCardNumber, setShowCardNumber] = React.useState(false);
+  const [showCardNumber, setShowCardNumber] = React.useState({
+    showCardNumber: false,
+    selectedCard: "",
+    index: 0,
+  });
   const [fullCardNumber, setFullCardNumber] = React.useState("");
 
   useEffect(() => {
@@ -35,8 +41,10 @@ const CardPage = () => {
           card_type: item?.card_type,
           created_at: moment(new Date()).format("YY/MM"),
           network: item?.network,
+          id: item?.id,
         },
         showVendor: true,
+        last4: item?.last4,
       }));
       setCardData(formatData);
     }
@@ -44,11 +52,43 @@ const CardPage = () => {
     initalize();
   }, []);
 
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || "";
+    const parts: string[] = [];
+
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+
+    if (parts.length) {
+      return parts.join(" ");
+    } else {
+      return v;
+    }
+  };
+  async function fetchCardNumber(id: string, index: number) {
+    const card = await getCardnumber(id);
+    const allCard = [...cardData];
+
+    allCard[index].value.cardNumber = formatCardNumber(card?.data?.data);
+
+    setCardData(allCard);
+  }
   useEffect(() => {
-    if (!showCardNumber) {
-      return;
+    const isShown = showCardNumber?.showCardNumber;
+    const index = showCardNumber?.index;
+    const id = showCardNumber?.selectedCard;
+    if (isShown) {
+      fetchCardNumber(id, index);
+    } else {
+      const allCard = [...cardData];
+      allCard[index].value.cardNumber = `••• ••• ••• ${allCard[index].last4}`;
+      setCardData(allCard);
     }
   }, [showCardNumber]);
+
   return (
     <main className="p-2">
       {/* <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 mt-2"> */}
@@ -73,6 +113,7 @@ const CardPage = () => {
               cardData?.map((card, index) => (
                 <BankCard
                   key={index}
+                  index={index}
                   value={card?.value}
                   showVendor={card?.showVendor}
                   setShowCardNumber={setShowCardNumber}

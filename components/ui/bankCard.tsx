@@ -139,6 +139,7 @@ export interface CreditCardValue {
   expiryYear: string;
   cvv: string;
   network: string;
+  id: string;
 }
 
 export interface CreditCardProps {
@@ -150,9 +151,20 @@ export interface CreditCardProps {
   cvvLabel?: "CCV" | "CVC";
   cardStyle?: CardStyle;
   showVendor?: boolean;
-  setShowCardNumber: React.Dispatch<React.SetStateAction<boolean>>;
-  showCardNumber: boolean;
+  setShowCardNumber: React.Dispatch<
+    React.SetStateAction<{
+      showCardNumber: boolean;
+      selectedCard: string;
+      index: number;
+    }>
+  >;
+  showCardNumber: {
+    showCardNumber: boolean;
+    selectedCard: string;
+    index: number;
+  };
   fullCardNumber: string;
+  index: number;
 }
 
 export interface CreditCardRef {
@@ -298,6 +310,7 @@ function BankCard({
   setShowCardNumber,
   showCardNumber,
   fullCardNumber,
+  index,
 }: CreditCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -322,6 +335,7 @@ function BankCard({
     expiryYear: "",
     cvv: "",
     network: "",
+    id: "",
   };
 
   const validateAndUpdate = (newValue: CreditCardValue) => {
@@ -409,6 +423,7 @@ function BankCard({
       expiryYear: "",
       cvv: "",
       network: "",
+      id: "",
     });
   };
 
@@ -508,15 +523,42 @@ function BankCard({
                   {currentValue.cardNumber || "•••• •••• •••• ••••"}
                 </div>
                 <div>
-                  {showCardNumber ? (
-                    <button onClick={() => setShowCardNumber(false)}>
+                  {!showCardNumber?.showCardNumber ? (
+                    <button
+                      onClick={() =>
+                        setShowCardNumber({
+                          showCardNumber: true,
+                          selectedCard: currentValue?.id,
+                          index,
+                        })
+                      }
+                    >
                       <Eye className="size-5" />
                     </button>
                   ) : (
-                    <button onClick={() => setShowCardNumber(true)}>
+                    <button
+                      onClick={() =>
+                        setShowCardNumber({
+                          showCardNumber: false,
+                          selectedCard: currentValue?.id,
+                          index,
+                        })
+                      }
+                    >
                       <EyeOff className="size-5" />
                     </button>
                   )}
+
+                  <button
+                    onClick={() =>
+                      setShowCardNumber({
+                        showCardNumber: false,
+                        selectedCard: currentValue?.id,
+                        index,
+                      })
+                    }
+                  >
+                  </button>
                 </div>
               </div>
 

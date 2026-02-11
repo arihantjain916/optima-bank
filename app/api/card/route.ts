@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
         created_at: true,
         network: true,
         status: true,
+        id: true,
       },
     });
 
