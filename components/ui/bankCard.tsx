@@ -510,7 +510,7 @@ function BankCard({
   };
 
   return (
-    <div ref={containerRef} className={cn("w-full max-w-sm py-2", className)}>
+    <div ref={containerRef} className={cn("w-full max-w-md py-2", className)}>
       {/* Card Container with 3D effects using Tailwind CSS utilities */}
       <div className="relative h-56 mb-6 [perspective:1000px]">
         <motion.div
@@ -526,10 +526,11 @@ function BankCard({
         >
           {/* Front of Card */}
           <Card
-          // className={cn(
-          //   "absolute inset-0 w-full h-[110%] p-6 flex flex-col justify-between [backface-visibility:hidden] shadow-xl",
-          //   cardStyles[cardStyle],
-          // )}
+            className="w-full"
+            // className={cn(
+            //   "absolute inset-0 w-full h-[110%] p-6 flex flex-col justify-between [backface-visibility:hidden] shadow-xl",
+            //   cardStyles[cardStyle],
+            // )}
           >
             <div
               className={cn(
@@ -546,7 +547,7 @@ function BankCard({
 
               <div className="space-y-4">
                 <div className="flex items-end justify-between">
-                  <div className="flex gap-2 items-center ">
+                  <div className="flex gap-2 items-center w-full ">
                     <div className="text-xl font-mono tracking-wider font-bold">
                       {currentValue.cardNumber || "•••• •••• •••• ••••"}
                     </div>

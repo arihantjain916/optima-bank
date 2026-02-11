@@ -4,7 +4,7 @@ import { generateOTP } from "@/helper/generateRandomNumber";
 import prisma from "@/lib/prisma";
 import { isDateExpired } from "@/helper/checkOtpExp";
 import axios from "axios";
-import { encrypt } from "@/helper/encrypt";
+import { encrypt, generateUniqueCardNumber } from "@/helper/encrypt";
 import moment from "moment";
 
 export async function GET(
@@ -119,6 +119,7 @@ export async function POST(
       return NextResponse.json({ error: "OTP Expired" }, { status: 400 });
 
     const res = await generateCardForUsers(fetchOtp.sender);
+    console.log("res", res);
     if (!res)
       return NextResponse.json(
         { error: "Something went wrong" },
@@ -130,13 +131,18 @@ export async function POST(
       { status: 200 },
     );
   } catch (error) {
+    console.log(error);
     return NextResponse.json({ error: error }, { status: 500 });
   }
 }
 
 async function generateCardForUsers(user: any) {
   try {
-    const generateString = generateOTP(16);
+    const generateString = generateUniqueCardNumber(
+      user.id,
+      process.env.ENCRYPT_TOKEN!,
+      15, //always desired - 1
+    );
     const { iv, data, tag } = encrypt(
       generateString,
       process.env.ENCRYPT_TOKEN!,

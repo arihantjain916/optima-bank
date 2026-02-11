@@ -1,5 +1,41 @@
 const crypto = require("crypto");
 
+export const generateUniqueCardNumber = (
+  userId: string,
+  secretKey: string,
+  length: number,
+): string => {
+  const dateStr = new Date().toISOString().split("T")[0];
+
+  const hash = crypto
+    .createHmac("sha256", secretKey)
+    .update(`${userId}-${dateStr}`)
+    .digest("hex");
+
+
+  let numericString = "";
+  for (let i = 0; i < hash.length && numericString.length < length; i++) {
+    const charCode = hash.charCodeAt(i);
+    numericString += (charCode % 10).toString();
+  }
+
+  return appendLuhnCheckDigit(numericString);
+};
+
+function appendLuhnCheckDigit(number: string): string {
+  let sum = 0;
+  for (let i = 0; i < number.length; i++) {
+    let digit = parseInt(number[number.length - 1 - i]);
+    if (i % 2 === 0) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+  }
+  const checkDigit = (10 - (sum % 10)) % 10;
+  return number + checkDigit;
+}
+
 export function encrypt(text: string, secret: string) {
   const key = crypto.createHash("sha256").update(secret).digest();
   const iv = crypto.randomBytes(12);
@@ -58,7 +94,6 @@ export function validateDynamicCVV(
   cardId: string,
   secretKey: string,
 ): boolean {
-
   const DAY_IN_MS = 24 * 60 * 60 * 1000;
   const currentDayStep = Math.floor(Date.now() / DAY_IN_MS);
 
