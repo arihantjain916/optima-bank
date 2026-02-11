@@ -41,4 +41,36 @@ export function decrypt(
   return decrypted;
 }
 
-// export const g
+export function generateDynamicCVV(cardId: string, secretKey: string) {
+  const timeStep = Math.floor(Date.now() / 300000);
+
+  const hash = crypto
+    .createHmac("sha256", secretKey)
+    .update(`${cardId}-${timeStep}`)
+    .digest("hex");
+
+  const cvv = (parseInt(hash.substring(0, 8), 16) % 900) + 100;
+  return cvv.toString();
+}
+
+export function validateDynamicCVV(
+  providedCvv: string,
+  cardId: string,
+  secretKey: string,
+): boolean {
+  const WINDOW_SIZE_MS = 300000; 
+  const currentTimeStep = Math.floor(Date.now() / WINDOW_SIZE_MS);
+
+  const validWindows = [currentTimeStep, currentTimeStep - 1];
+
+  return validWindows.some((step) => {
+    const hash = crypto
+      .createHmac("sha256", secretKey)
+      .update(`${cardId}-${step}`)
+      .digest("hex");
+
+    const calculatedCvv = (parseInt(hash.substring(0, 8), 16) % 900) + 100;
+
+    return calculatedCvv.toString() === providedCvv;
+  });
+}
