@@ -142,6 +142,7 @@ async function generateCardForUsers(user: any) {
       user.id,
       process.env.ENCRYPT_TOKEN!,
       15, //always desired - 1
+      "RuPay",
     );
     const { iv, data, tag } = encrypt(
       generateString,
