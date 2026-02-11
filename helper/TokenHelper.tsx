@@ -9,15 +9,16 @@ export async function generateToken(email: string, id: string) {
         id,
       },
     },
-    process.env.JWT_SECRET!
+    process.env.JWT_SECRET!,
   );
 
-
-  await cookies().set({
+  cookies().set({
     name: "authCookie",
     value: token,
     // httpOnly: true,
     path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
   });
 }
 
