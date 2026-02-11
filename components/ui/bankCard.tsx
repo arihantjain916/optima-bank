@@ -526,38 +526,57 @@ function BankCard({
         >
           {/* Front of Card */}
           <Card
-            className={cn(
-              "absolute inset-0 w-full h-full p-6 flex flex-col justify-between [backface-visibility:hidden] shadow-xl",
-              cardStyles[cardStyle],
-            )}
+          // className={cn(
+          //   "absolute inset-0 w-full h-[110%] p-6 flex flex-col justify-between [backface-visibility:hidden] shadow-xl",
+          //   cardStyles[cardStyle],
+          // )}
           >
-            <div className="flex justify-between items-start">
-              <div
-                className={cn("w-12 h-8 rounded shadow-md", getChipColor())}
-              ></div>
-              {/* Vendor logo moved to top right for now, will be repositioned */}
-            </div>
+            <div
+              className={cn(
+                "w-full h-[110%] p-6 flex flex-col justify-between shadow-xl",
+                cardStyles[cardStyle],
+              )}
+            >
+              <div className="flex justify-between items-start">
+                <div
+                  className={cn("w-12 h-8 rounded shadow-md", getChipColor())}
+                ></div>
+                {/* Vendor logo moved to top right for now, will be repositioned */}
+              </div>
 
-            <div className="space-y-4">
-              <div className="flex items-end justify-between">
-                <div className="flex gap-2 items-center ">
-                  <div className="text-xl font-mono tracking-wider font-bold">
-                    {currentValue.cardNumber || "•••• •••• •••• ••••"}
-                  </div>
-                  <div>
-                    {!showCardNumber?.showCardNumber ? (
-                      <button
-                        onClick={() =>
-                          setShowCardNumber({
-                            showCardNumber: true,
-                            selectedCard: currentValue?.id,
-                            index,
-                          })
-                        }
-                      >
-                        <Eye className="size-5" />
-                      </button>
-                    ) : (
+              <div className="space-y-4">
+                <div className="flex items-end justify-between">
+                  <div className="flex gap-2 items-center ">
+                    <div className="text-xl font-mono tracking-wider font-bold">
+                      {currentValue.cardNumber || "•••• •••• •••• ••••"}
+                    </div>
+                    <div>
+                      {!showCardNumber?.showCardNumber ? (
+                        <button
+                          onClick={() =>
+                            setShowCardNumber({
+                              showCardNumber: true,
+                              selectedCard: currentValue?.id,
+                              index,
+                            })
+                          }
+                        >
+                          <Eye className="size-5" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            setShowCardNumber({
+                              showCardNumber: false,
+                              selectedCard: currentValue?.id,
+                              index,
+                            })
+                          }
+                        >
+                          <EyeOff className="size-5" />
+                        </button>
+                      )}
+
                       <button
                         onClick={() =>
                           setShowCardNumber({
@@ -566,255 +585,86 @@ function BankCard({
                             index,
                           })
                         }
+                      ></button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end items-end space-x-4">
+                    <div className="text-right space-y-2">
+                      <div className="text-xs opacity-70 uppercase font-small">
+                        CVV
+                      </div>
+                      <div className="bg-white text-black px-2  rounded text-center font-mono font-bold">
+                        {currentValue.cvv || "•••"}
+                      </div>
+                    </div>
+
+                    {!showCardCVV?.show ? (
+                      <button
+                        onClick={() =>
+                          setShowCardCVV({
+                            show: true,
+                            selectedCard: currentValue?.id,
+                            index,
+                          })
+                        }
                       >
-                        <EyeOff className="size-5" />
+                        <Lock className="w-6 h-6 opacity-60" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          setShowCardCVV({
+                            show: false,
+                            selectedCard: currentValue?.id,
+                            index,
+                          })
+                        }
+                      >
+                        <LockOpen className="w-6 h-6 opacity-60" />
                       </button>
                     )}
-
-                    <button
-                      onClick={() =>
-                        setShowCardNumber({
-                          showCardNumber: false,
-                          selectedCard: currentValue?.id,
-                          index,
-                        })
-                      }
-                    ></button>
                   </div>
                 </div>
 
-                <div className="flex justify-end items-end space-x-4">
-                  <div className="text-right space-y-2">
-                    <div className="text-xs opacity-70 uppercase font-small">
-                      CVV
+                {/* Bottom row: cardholder - expires - vendor logo */}
+                <div className="flex justify-between items-end">
+                  <div className="flex-1">
+                    <div className="text-xs opacity-70 uppercase font-medium">
+                      Card Holder
                     </div>
-                    <div className="bg-white text-black px-2  rounded text-center font-mono font-bold">
-                      {currentValue.cvv || "•••"}
+                    <div className="font-bold text-sm">
+                      {currentValue.cardholderName || "YOUR NAME"}
                     </div>
                   </div>
-
-                  {!showCardCVV?.show ? (
-                    <button
-                      onClick={() =>
-                        setShowCardCVV({
-                          show: true,
-                          selectedCard: currentValue?.id,
-                          index,
-                        })
-                      }
-                    >
-                      <Lock className="w-6 h-6 opacity-60" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() =>
-                        setShowCardCVV({
-                          show: false,
-                          selectedCard: currentValue?.id,
-                          index,
-                        })
-                      }
-                    >
-                      <LockOpen className="w-6 h-6 opacity-60" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Bottom row: cardholder - expires - vendor logo */}
-              <div className="flex justify-between items-end">
-                <div className="flex-1">
-                  <div className="text-xs opacity-70 uppercase font-medium">
-                    Card Holder
+                  <div className="flex-1 text-center">
+                    <div className="text-xs opacity-70 uppercase font-medium">
+                      Expires
+                    </div>
+                    <div className="font-bold text-sm">
+                      {currentValue.expiryMonth && currentValue.expiryYear
+                        ? `${currentValue.expiryMonth}/${currentValue.expiryYear.slice(-2)}`
+                        : "MM/YY"}
+                    </div>
                   </div>
-                  <div className="font-bold text-sm">
-                    {currentValue.cardholderName || "YOUR NAME"}
+                  <div className="flex-1 flex justify-end">
+                    {showVendor && CardIcons[cardType]}
                   </div>
-                </div>
-                <div className="flex-1 text-center">
-                  <div className="text-xs opacity-70 uppercase font-medium">
-                    Expires
-                  </div>
-                  <div className="font-bold text-sm">
-                    {currentValue.expiryMonth && currentValue.expiryYear
-                      ? `${currentValue.expiryMonth}/${currentValue.expiryYear.slice(-2)}`
-                      : "MM/YY"}
-                  </div>
-                </div>
-                <div className="flex-1 flex justify-end">
-                  {showVendor && CardIcons[cardType]}
                 </div>
               </div>
             </div>
-          </Card>
 
-          {/* Back of Card */}
-          <Card
-            className={cn(
-              "absolute inset-0 w-full h-full p-6 flex flex-col justify-between [backface-visibility:hidden] [transform:rotateY(180deg)] shadow-xl",
-              cardBackStyles[cardStyle],
-            )}
-          >
-            <div className="w-full h-12 bg-black mt-4 shadow-inner"></div>
-
-            <div className="flex justify-end items-center space-x-4">
-              <div className="text-right">
-                <div className="text-xs opacity-70 uppercase font-medium">
-                  {cvvLabel}
-                </div>
-                <div className="bg-white text-black px-3 py-1 rounded text-center font-mono font-bold">
-                  {currentValue.cvv || "•••"}
-                </div>
+            <div className="mt-2 mb-2 text-center">
+              <div className="text-xs opacity-60 text-center font-medium">
+                CVV is valid for 24 hours only.
               </div>
-              <Lock className="w-6 h-6 opacity-60" />
-            </div>
-
-            <div className="text-xs opacity-60 text-center font-medium">
-              This card is protected by advanced security features
+              <div className="text-xs opacity-60 text-center font-sm">
+                This card is protected by advanced security features
+              </div>
             </div>
           </Card>
         </motion.div>
       </div>
-
-      {/* <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Cardholder Name
-          </label>
-          <Input
-            ref={cardholderInputRef}
-            type="text"
-            placeholder="John Doe"
-            value={currentValue.cardholderName}
-            onChange={(e) =>
-              handleInputChange("cardholderName", e.target.value.toUpperCase())
-            }
-            onFocus={() => handleFieldFocus("cardholderName")}
-            onBlur={handleFieldBlur}
-            className={cn(
-              "transition-all duration-200",
-              focusedField === "cardholderName" && "ring-2 ring-primary",
-              errors.cardholderName && "border-destructive",
-            )}
-          />
-          {errors.cardholderName && (
-            <p className="text-destructive text-xs mt-1">
-              {errors.cardholderName}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Card Number</label>
-          <Input
-            ref={cardNumberInputRef}
-            type="text"
-            placeholder="1234 5678 9012 3456"
-            value={currentValue.cardNumber}
-            onChange={handleCardNumberChange}
-            onFocus={() => handleFieldFocus("cardNumber")}
-            onBlur={handleFieldBlur}
-            className={cn(
-              "font-mono transition-all duration-200",
-              focusedField === "cardNumber" && "ring-2 ring-primary",
-              errors.cardNumber && "border-destructive",
-            )}
-            maxLength={19}
-          />
-          {errors.cardNumber && (
-            <p className="text-destructive text-xs mt-1">{errors.cardNumber}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Month</label>
-            <Select
-              value={currentValue.expiryMonth}
-              onValueChange={(value) => handleInputChange("expiryMonth", value)}
-            >
-              <SelectTrigger
-                className={cn(
-                  "transition-all duration-200",
-                  focusedField === "expiryMonth" && "ring-2 ring-primary",
-                  errors.expiryMonth && "border-destructive",
-                )}
-              >
-                <SelectValue placeholder="MM" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.expiryMonth && (
-              <p className="text-destructive text-xs mt-1">
-                {errors.expiryMonth}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Year</label>
-            <Select
-              value={currentValue.expiryYear}
-              onValueChange={(value) => handleInputChange("expiryYear", value)}
-            >
-              <SelectTrigger
-                className={cn(
-                  "transition-all duration-200",
-                  focusedField === "expiryYear" && "ring-2 ring-primary",
-                  errors.expiryYear && "border-destructive",
-                )}
-              >
-                <SelectValue placeholder="YYYY" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.expiryYear && (
-              <p className="text-destructive text-xs mt-1">
-                {errors.expiryYear}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">{cvvLabel}</label>
-            <Input
-              ref={cvvInputRef}
-              type="text"
-              placeholder="123"
-              value={currentValue.cvv}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "");
-                if (value.length <= (cardType === "amex" ? 4 : 3)) {
-                  handleInputChange("cvv", value);
-                }
-              }}
-              onFocus={handleCvvFocus}
-              onBlur={handleCvvBlur}
-              className={cn(
-                "font-mono text-center transition-all duration-200",
-                focusedField === "cvv" && "ring-2 ring-primary",
-                errors.cvv && "border-destructive",
-              )}
-              maxLength={cardType === "amex" ? 4 : 3}
-            />
-            {errors.cvv && (
-              <p className="text-destructive text-xs mt-1">{errors.cvv}</p>
-            )}
-          </div>
-        </div>
-      </div> */}
     </div>
   );
 }
