@@ -2,7 +2,7 @@
 
 import React, { use, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { getCardInfo, getCardnumber } from "@/helper/api/dashboard";
+import { getCardCVV, getCardInfo, getCardnumber } from "@/helper/api/dashboard";
 import { BankCard } from "../ui/bankCard";
 import moment from "moment";
 
@@ -27,7 +27,12 @@ const CardPage = () => {
     selectedCard: "",
     index: 0,
   });
-  const [fullCardNumber, setFullCardNumber] = React.useState("");
+
+  const [showCardCVV, setShowCardCVV] = React.useState({
+    show: false,
+    selectedCard: "",
+    index: 0,
+  });
 
   useEffect(() => {
     async function initalize() {
@@ -76,6 +81,17 @@ const CardPage = () => {
 
     setCardData(allCard);
   }
+
+  async function fetchCardCVV(id: string, index: number) {
+    const card = await getCardCVV(id);
+    const allCard = [...cardData];
+
+    allCard[index].value.cvv = card?.data?.data;
+
+    setCardData(allCard);
+  }
+
+  //showCardNumber
   useEffect(() => {
     const isShown = showCardNumber?.showCardNumber;
     const index = showCardNumber?.index;
@@ -88,6 +104,20 @@ const CardPage = () => {
       setCardData(allCard);
     }
   }, [showCardNumber]);
+
+  //showCardCVV
+  useEffect(() => {
+    const isShown = showCardCVV?.show;
+    const index = showCardCVV?.index;
+    const id = showCardCVV?.selectedCard;
+    if (isShown) {
+      fetchCardCVV(id, index);
+    } else {
+      const allCard = [...cardData];
+      allCard[index].value.cvv = `•••`;
+      setCardData(allCard);
+    }
+  }, [showCardCVV]);
 
   return (
     <main className="p-2">
@@ -118,7 +148,8 @@ const CardPage = () => {
                   showVendor={card?.showVendor}
                   setShowCardNumber={setShowCardNumber}
                   showCardNumber={showCardNumber}
-                  fullCardNumber={fullCardNumber}
+                  setShowCardCVV={setShowCardCVV}
+                  showCardCVV={showCardCVV}
                 />
               ))}
           </div>

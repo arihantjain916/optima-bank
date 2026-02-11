@@ -152,6 +152,28 @@ const getCardnumber = async (id: string) => {
     return null;
   }
 };
+
+const getCardCVV = async (id: string) => {
+  try {
+    const card = await axios.get(`/api/card/${id}/reveal/cvv`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return card;
+  } catch (err) {
+    const error = err as AxiosError;
+    if (error.response) {
+      console.log("Error response:", error.response.data);
+      return error.response;
+    } else if (error.request) {
+      console.log("Error request:", error.request);
+    } else {
+      console.log("Error message:", error.message);
+    }
+    return null;
+  }
+};
 export {
   DashboardApi,
   TransactionApi,
@@ -160,4 +182,5 @@ export {
   transferFund,
   getCardInfo,
   getCardnumber,
+  getCardCVV,
 };

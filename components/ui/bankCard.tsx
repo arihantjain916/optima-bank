@@ -13,7 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { CreditCard as CreditCardIcon, Eye, EyeOff, Lock } from "lucide-react";
+import {
+  CreditCard as CreditCardIcon,
+  Eye,
+  EyeOff,
+  Lock,
+  LockOpen,
+} from "lucide-react";
 
 // Enhanced Card vendor SVG icons with better styling
 const CardIcons = {
@@ -163,8 +169,21 @@ export interface CreditCardProps {
     selectedCard: string;
     index: number;
   };
-  fullCardNumber: string;
+  fullCardNumber?: string;
   index: number;
+
+  setShowCardCVV: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      selectedCard: string;
+      index: number;
+    }>
+  >;
+  showCardCVV: {
+    show: boolean;
+    selectedCard: string;
+    index: number;
+  };
 }
 
 export interface CreditCardRef {
@@ -311,6 +330,8 @@ function BankCard({
   showCardNumber,
   fullCardNumber,
   index,
+  setShowCardCVV,
+  showCardCVV,
 }: CreditCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -518,24 +539,38 @@ function BankCard({
             </div>
 
             <div className="space-y-4">
-              <div className="flex gap-2 items-center ">
-                <div className="text-xl font-mono tracking-wider font-bold">
-                  {currentValue.cardNumber || "•••• •••• •••• ••••"}
-                </div>
-                <div>
-                  {!showCardNumber?.showCardNumber ? (
-                    <button
-                      onClick={() =>
-                        setShowCardNumber({
-                          showCardNumber: true,
-                          selectedCard: currentValue?.id,
-                          index,
-                        })
-                      }
-                    >
-                      <Eye className="size-5" />
-                    </button>
-                  ) : (
+              <div className="flex items-end justify-between">
+                <div className="flex gap-2 items-center ">
+                  <div className="text-xl font-mono tracking-wider font-bold">
+                    {currentValue.cardNumber || "•••• •••• •••• ••••"}
+                  </div>
+                  <div>
+                    {!showCardNumber?.showCardNumber ? (
+                      <button
+                        onClick={() =>
+                          setShowCardNumber({
+                            showCardNumber: true,
+                            selectedCard: currentValue?.id,
+                            index,
+                          })
+                        }
+                      >
+                        <Eye className="size-5" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          setShowCardNumber({
+                            showCardNumber: false,
+                            selectedCard: currentValue?.id,
+                            index,
+                          })
+                        }
+                      >
+                        <EyeOff className="size-5" />
+                      </button>
+                    )}
+
                     <button
                       onClick={() =>
                         setShowCardNumber({
@@ -544,21 +579,45 @@ function BankCard({
                           index,
                         })
                       }
+                    ></button>
+                  </div>
+                </div>
+
+                <div className="flex justify-end items-end space-x-4">
+                  <div className="text-right space-y-2">
+                    <div className="text-xs opacity-70 uppercase font-small">
+                      CVV
+                    </div>
+                    <div className="bg-white text-black px-2  rounded text-center font-mono font-bold">
+                      {currentValue.cvv || "•••"}
+                    </div>
+                  </div>
+
+                  {!showCardCVV?.show ? (
+                    <button
+                      onClick={() =>
+                        setShowCardCVV({
+                          show: true,
+                          selectedCard: currentValue?.id,
+                          index,
+                        })
+                      }
                     >
-                      <EyeOff className="size-5" />
+                      <Lock className="w-6 h-6 opacity-60" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        setShowCardCVV({
+                          show: false,
+                          selectedCard: currentValue?.id,
+                          index,
+                        })
+                      }
+                    >
+                      <LockOpen className="w-6 h-6 opacity-60" />
                     </button>
                   )}
-
-                  <button
-                    onClick={() =>
-                      setShowCardNumber({
-                        showCardNumber: false,
-                        selectedCard: currentValue?.id,
-                        index,
-                      })
-                    }
-                  >
-                  </button>
                 </div>
               </div>
 
