@@ -1,25 +1,46 @@
 const crypto = require("crypto");
 
+type CardNetwork = "Visa" | "Mastercard" | "RuPay" | "Amex" | "Discover";
+
 export const generateUniqueCardNumber = (
   userId: string,
   secretKey: string,
   length: number,
+  network: CardNetwork,
 ): string => {
-  const dateStr = new Date().toISOString().split("T")[0];
+  const networkBins: Record<CardNetwork, string> = {
+    Visa: "482931",
+    Mastercard: "524198",
+    RuPay: "608291",
+    Amex: "371234",
+    Discover: "601123",
+  };
 
-  const hash = crypto
-    .createHmac("sha256", secretKey)
-    .update(`${userId}-${dateStr}`)
-    .digest("hex");
+  const BIN = networkBins[network];
 
+  const neededAccountLength = length - BIN.length;
 
-  let numericString = "";
-  for (let i = 0; i < hash.length && numericString.length < length; i++) {
-    const charCode = hash.charCodeAt(i);
-    numericString += (charCode % 10).toString();
+  if (neededAccountLength < 0) {
+    throw new Error("Card length is too short for the selected BIN");
   }
 
-  return appendLuhnCheckDigit(numericString);
+  const dateStr = new Date().toISOString().split("T")[0];
+  const hash = crypto
+    .createHmac("sha256", secretKey)
+    .update(`${userId}-${dateStr}-${network}`)
+    .digest("hex");
+
+  let accountPart = "";
+  for (
+    let i = 0;
+    i < hash.length && accountPart.length < neededAccountLength;
+    i++
+  ) {
+    accountPart += (hash.charCodeAt(i) % 10).toString();
+  }
+
+  const baseNumber = BIN + accountPart;
+  return appendLuhnCheckDigit(baseNumber);
 };
 
 function appendLuhnCheckDigit(number: string): string {
