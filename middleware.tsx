@@ -4,7 +4,11 @@ import { JwtType } from "./types/jwtPayload";
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const isPublic = path === "/auth/login" || path === "/auth/register";
+  const isPublic =
+    path === "/auth/login" ||
+    path === "/auth/register" ||
+    path === "/api/auth/login" ||
+    path === "/api/auth/register";
   const token = request.cookies.get("authCookie")?.value;
 
   // logged-in user trying to access login/register
