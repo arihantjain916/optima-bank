@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -13,7 +14,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get("x-user-id");
+    const headerList = headers();
+    const userId = headerList.get("x-user-id");
+
     if (!userId) {
       return NextResponse.json({ data: "Invalid User" }, { status: 500 });
     }
