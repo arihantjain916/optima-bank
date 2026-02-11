@@ -20,6 +20,9 @@ const CardPage = () => {
       showVendor: false,
     },
   ]);
+  const [showCardNumber, setShowCardNumber] = React.useState(false);
+  const [fullCardNumber, setFullCardNumber] = React.useState("");
+
   useEffect(() => {
     async function initalize() {
       const card = await getCardInfo();
@@ -40,6 +43,12 @@ const CardPage = () => {
 
     initalize();
   }, []);
+
+  useEffect(() => {
+    if (!showCardNumber) {
+      return;
+    }
+  }, [showCardNumber]);
   return (
     <main className="p-2">
       {/* <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 mt-2"> */}
@@ -66,6 +75,9 @@ const CardPage = () => {
                   key={index}
                   value={card?.value}
                   showVendor={card?.showVendor}
+                  setShowCardNumber={setShowCardNumber}
+                  showCardNumber={showCardNumber}
+                  fullCardNumber={fullCardNumber}
                 />
               ))}
           </div>

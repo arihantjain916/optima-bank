@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { CreditCard as CreditCardIcon, Lock } from "lucide-react";
+import { CreditCard as CreditCardIcon, Eye, EyeOff, Lock } from "lucide-react";
 
 // Enhanced Card vendor SVG icons with better styling
 const CardIcons = {
@@ -150,6 +150,9 @@ export interface CreditCardProps {
   cvvLabel?: "CCV" | "CVC";
   cardStyle?: CardStyle;
   showVendor?: boolean;
+  setShowCardNumber: React.Dispatch<React.SetStateAction<boolean>>;
+  showCardNumber: boolean;
+  fullCardNumber: string;
 }
 
 export interface CreditCardRef {
@@ -292,6 +295,9 @@ function BankCard({
   cvvLabel = "CVC",
   cardStyle = "base",
   showVendor = true,
+  setShowCardNumber,
+  showCardNumber,
+  fullCardNumber,
 }: CreditCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -497,8 +503,21 @@ function BankCard({
             </div>
 
             <div className="space-y-4">
-              <div className="text-xl font-mono tracking-wider font-bold">
-                {currentValue.cardNumber || "•••• •••• •••• ••••"}
+              <div className="flex gap-2 items-center ">
+                <div className="text-xl font-mono tracking-wider font-bold">
+                  {currentValue.cardNumber || "•••• •••• •••• ••••"}
+                </div>
+                <div>
+                  {showCardNumber ? (
+                    <button onClick={() => setShowCardNumber(false)}>
+                      <Eye className="size-5" />
+                    </button>
+                  ) : (
+                    <button onClick={() => setShowCardNumber(true)}>
+                      <EyeOff className="size-5" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Bottom row: cardholder - expires - vendor logo */}
