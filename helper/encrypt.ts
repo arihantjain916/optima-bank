@@ -58,12 +58,13 @@ export function validateDynamicCVV(
   cardId: string,
   secretKey: string,
 ): boolean {
-  const WINDOW_SIZE_MS = 300000; 
-  const currentTimeStep = Math.floor(Date.now() / WINDOW_SIZE_MS);
 
-  const validWindows = [currentTimeStep, currentTimeStep - 1];
+  const DAY_IN_MS = 24 * 60 * 60 * 1000;
+  const currentDayStep = Math.floor(Date.now() / DAY_IN_MS);
 
-  return validWindows.some((step) => {
+  const validDays = [currentDayStep, currentDayStep - 1];
+
+  return validDays.some((step) => {
     const hash = crypto
       .createHmac("sha256", secretKey)
       .update(`${cardId}-${step}`)
