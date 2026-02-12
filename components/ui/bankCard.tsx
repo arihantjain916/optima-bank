@@ -546,8 +546,8 @@ function BankCard({
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-end justify-between">
-                  <div className="flex gap-2 items-center w-full ">
+                <div className="flex items-end justify-start md:justify-between flex-col w-full md:flex-row space-x-4 md:space-x-0 gap-2">
+                  <div className="flex gap-2 items-center w-full mt-2">
                     <div className="text-xl font-mono tracking-wider font-bold">
                       {currentValue.cardNumber || "•••• •••• •••• ••••"}
                     </div>
@@ -590,8 +590,8 @@ function BankCard({
                     </div>
                   </div>
 
-                  <div className="flex justify-end items-end space-x-4">
-                    <div className="text-right space-y-2">
+                  <div className="flex items-end space-x-4 w-full md:w-auto">
+                    <div className="text-left  md:text-right space-y-2">
                       <div className="text-xs opacity-70 uppercase font-small">
                         CVV
                       </div>
