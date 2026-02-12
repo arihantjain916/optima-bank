@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { error: "Please enter some data" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -18,11 +18,17 @@ export async function POST(request: NextRequest) {
   if (missingFields.length > 0) {
     return NextResponse.json(
       { error: `Missing fields: ${missingFields.join(", ")}` },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
+    if (data.sender_acc_no == data.receiver_acc_no) {
+      return NextResponse.json(
+        { error: "Sender and Receiver cannot be same" },
+        { status: 400 },
+      );
+    }
     // Check if both accounts exist
     const [sender, receiver] = await Promise.all([
       prisma.user.findUnique({ where: { account_no: data.sender_acc_no } }),
@@ -32,20 +38,20 @@ export async function POST(request: NextRequest) {
     if (!sender) {
       return NextResponse.json(
         { error: "Invalid Sender Account Number" },
-        { status: 404 }
+        { status: 404 },
       );
     }
     if (!receiver) {
       return NextResponse.json(
         { error: "Invalid Receiver Account Number" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (data.amount > sender.currentBalance) {
       return NextResponse.json(
         { error: "Insufficient Balance" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -91,7 +97,7 @@ export async function POST(request: NextRequest) {
     console.error("Transaction failed:", err);
     return NextResponse.json(
       { data: "Transaction failed. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
