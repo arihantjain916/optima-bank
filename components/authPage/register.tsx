@@ -45,7 +45,6 @@ export default function Register() {
     };
     const res = await RegisterApi(dataa as RegisterUserType);
        if (res?.status != 200) {
-      console.log(res?.data.data);
       return;
     } 
     alert("Your account created successfully");

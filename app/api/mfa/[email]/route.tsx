@@ -24,7 +24,6 @@ export async function GET(
         email: params.email,
       },
     });
-    console.log(!isUserExist);
 
     if (!isUserExist) {
       return NextResponse.json(
@@ -119,7 +118,7 @@ export async function POST(
       return NextResponse.json({ error: "OTP Expired" }, { status: 400 });
 
     const res = await generateCardForUsers(fetchOtp.sender);
-    console.log("res", res);
+
     if (!res)
       return NextResponse.json(
         { error: "Something went wrong" },
@@ -131,7 +130,6 @@ export async function POST(
       { status: 200 },
     );
   } catch (error) {
-    console.log(error);
     return NextResponse.json({ error: error }, { status: 500 });
   }
 }
@@ -191,7 +189,6 @@ async function generateCardForUsers(user: any) {
 
     return true;
   } catch (e: any) {
-    console.log(e);
     throw new Error(e.message);
   }
 }

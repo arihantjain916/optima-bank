@@ -32,7 +32,5 @@ export async function processData(
 
   const data = Object.values(dataMap);
 
-  console.log("Processed Data:", data);
-
   return data;
 }

@@ -75,7 +75,6 @@ export const OtpPage = (props: { email: string }) => {
     if (email) {
       sendOtp();
     } else {
-      console.log("Invalid email");
     }
   }, [email]);
 

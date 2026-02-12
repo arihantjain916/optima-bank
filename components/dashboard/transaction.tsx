@@ -19,7 +19,6 @@ export default function TransactionPage() {
     const res = await DashboardApi(email);
     setUserData(res?.data.data);       
        if (res?.status != 200) {
-      console.log(res?.data.data);
       return;
     } 
 
@@ -31,7 +30,6 @@ export default function TransactionPage() {
   async function fetchTransaction(account_no: string) {
     const res = await TransactionApi(account_no); 
        if (res?.status != 200) {
-      console.log(res?.data.data);
       return;
     }
     setTransactionData(res?.data.data);

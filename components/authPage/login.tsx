@@ -37,7 +37,6 @@ export default function Login() {
   const onSubmit = handleSubmit(async (data) => {
     const res = await LoginApi(data as LoginUserType);
     if (res?.status != 200) {
-      console.log(res?.data.data);
       return;
     }
     alert("Login Successfully...");

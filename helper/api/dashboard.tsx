@@ -9,7 +9,7 @@ const DashboardApi = async (data: any) => {
   } catch (err) {
     const error = err as AxiosError;
     if (error.response) {
-      console.log("Error response:", error.response.data);
+      
       return error.response;
     } else if (error.request) {
       console.log("Error request:", error.request);

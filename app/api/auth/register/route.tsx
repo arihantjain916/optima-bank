@@ -10,15 +10,12 @@ export async function POST(request: NextRequest) {
   var salt = await bcrypt.genSaltSync(parseInt(process.env.BCRYPT_SALT!));
   var hash = await bcrypt.hashSync(password, salt);
 
-  if (!hash) console.log("Unable to Hash Password");
-
-  const account_no = generateUniqueAccountNumber();
 
   const saveData = {
     email,
     password: hash,
     name,
-    account_no,
+    account_no: "",
   };
 
   try {
@@ -27,7 +24,6 @@ export async function POST(request: NextRequest) {
         email: email,
       },
     });
-    
 
     if (checkExistingUser)
       return NextResponse.json({

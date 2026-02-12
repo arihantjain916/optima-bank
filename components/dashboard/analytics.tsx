@@ -15,7 +15,6 @@ export default function AnalyticsPage() {
   async function fetchData(email: string) {
     const res = await DashboardApi(email);
        if (res?.status != 200) {
-      console.log(res?.data.data);
       return;
     } 
     if (res?.data.data?.id) {
@@ -26,7 +25,6 @@ export default function AnalyticsPage() {
   async function fetchTransaction(account_no: string) {
     const res = await TransactionApi(account_no);
        if (res?.status != 200) {
-      console.log(res?.data.data);
       return;
     } 
     setTransactionData(res?.data.data);

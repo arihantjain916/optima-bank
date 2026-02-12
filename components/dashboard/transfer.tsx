@@ -16,7 +16,6 @@ export default function TransferPage() {
     const res = await DashboardApi(email);
     if (res?.status != 200) {
       {
-        console.log(res?.data.data);
         return;
       }
     }
