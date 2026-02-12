@@ -1,4 +1,19 @@
+"use client";
+
+import { checkIsLogin } from "@/helper/checkAuth";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+
 export const HomePage = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const logged = checkIsLogin();
+    setIsLoggedIn(logged);
+  }, []);
+
+  if (isLoggedIn === null) return null;
+
   return (
     <section className="bg-gray-900 text-white">
       <div className="mx-auto max-w-screen-xl px-4 py-32 lg:flex lg:h-screen lg:items-center">
@@ -11,24 +26,35 @@ export const HomePage = () => {
           </h1>
 
           <p className="mx-auto mt-4 max-w-xl sm:text-xl/relaxed">
-            An Online Bank System, to make your finiancial life easier.
+            An Online Bank System,s to make your finiancial life easier.
           </p>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <a
-              className="block w-full rounded border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-white focus:outline-none focus:ring active:text-opacity-75 sm:w-auto"
-              href="/auth/login"
-            >
-              Login
-            </a>
+          {isLoggedIn ? (
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <Link
+                className="block w-full rounded border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-white focus:outline-none focus:ring active:text-opacity-75 sm:w-auto"
+                href="/dashboard"
+              >
+                Navigate to Dashboard
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <Link
+                className="block w-full rounded border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-white focus:outline-none focus:ring active:text-opacity-75 sm:w-auto"
+                href="/auth/login"
+              >
+                Login
+              </Link>
 
-            <a
-              className="block w-full rounded border border-blue-600 px-12 py-3 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring active:bg-blue-500 sm:w-auto"
-              href="/auth/login"
-            >
-              Register
-            </a>
-          </div>
+              <Link
+                className="block w-full rounded border border-blue-600 px-12 py-3 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring active:bg-blue-500 sm:w-auto"
+                href="/auth/login"
+              >
+                Register
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </section>

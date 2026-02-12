@@ -12,11 +12,7 @@ export const Header = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setIsLoggedIn(checkIsLogin());
-    }, 10000);
-
-    return () => clearInterval(intervalId);
+    setIsLoggedIn(checkIsLogin());
   }, []);
   const handleLogout = async () => {
     await Logout();
