@@ -1,7 +1,6 @@
 "use client";
 
 import { DashboardApi, TransactionApi } from "@/helper/api";
-import { Transaction } from "@prisma/client";
 import { useState, useEffect } from "react";
 import { DashboardType } from "@/types/userType";
 import { DashboardCard, RecentTransaction } from "./component";
@@ -14,37 +13,25 @@ export function Dashboard(props: { email?: string }) {
   const isLogin = checkIsLogin();
   const [userdata, setUserData] = useState<DashboardType>();
   const [transactionData, setTransactionData] = useState<TransactionType[]>([]);
-  async function fetchData(email: string) {
-    const res = await DashboardApi(email);
-    if (res?.status != 200) {
-      return;
-    }
-    setUserData(res?.data.data);
-
-    await fetchTransaction(res?.data.data?.account_no);
-  }
-
-  async function fetchTransaction(account_no: string) {
-    const res = await TransactionApi(account_no);
-    if (res?.status != 200) {
-      return;
-    }
-    setTransactionData(res?.data.data);
-  }
-
-  // useEffect(() => {
-  //   fetchData();
-  // }, []);
-
   useEffect(() => {
     async function initialize() {
       const token = getUserInfo() as JwtType;
       const email = token?.data?.email;
-      if (email) {
-        await fetchData(email);
+      if (!email) return;
+
+      const dashboard = await DashboardApi(email);
+      if (dashboard?.status !== 200) return;
+
+      const user = dashboard.data.data;
+      setUserData(user);
+      if (!user?.account_no) return;
+
+      const transactions = await TransactionApi(user.account_no);
+      if (transactions?.status === 200) {
+        setTransactionData(transactions.data.data);
       }
     }
-    initialize();
+    void initialize();
   }, []);
 
   if (!isLogin) {

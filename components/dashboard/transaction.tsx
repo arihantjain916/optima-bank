@@ -15,36 +15,25 @@ export default function TransactionPage() {
   const [userdata, setUserData] = useState<DashboardType>();
   const [transactionData, setTransactionData] = useState<TransactionType[]>([]);
 
-  async function fetchData(email: string) {
-    const res = await DashboardApi(email);
-    setUserData(res?.data.data);       
-       if (res?.status != 200) {
-      return;
-    } 
-
-    if (res?.data.data?.account_no) {
-      await fetchTransaction(res?.data.data.account_no);
-    }
-  }
-
-  async function fetchTransaction(account_no: string) {
-    const res = await TransactionApi(account_no); 
-       if (res?.status != 200) {
-      return;
-    }
-    setTransactionData(res?.data.data);
-  }
-
   useEffect(() => {
     async function initialize() {
       const token = getUserInfo() as JwtType;
       const email = token?.data?.email;
+      if (!email) return;
 
-      if (email) {
-        await fetchData(email);
+      const dashboard = await DashboardApi(email);
+      if (dashboard?.status !== 200) return;
+
+      const user = dashboard.data.data;
+      setUserData(user);
+      if (!user?.account_no) return;
+
+      const transactions = await TransactionApi(user.account_no);
+      if (transactions?.status === 200) {
+        setTransactionData(transactions.data.data);
       }
     }
-    initialize();
+    void initialize();
   }, []);
 
   if (!isLogin) {

@@ -62,7 +62,7 @@ export default function ProfileCard({ userData }: { userData: User }) {
         <form className="grid gap-4" onSubmit={onSubmit}>
         <div className="flex flex-col md:flex-row gap-4 space-y-1 items-center justify-center ">
             <Label>Account Number</Label>
-            <Input value={userData?.account_no} disabled />
+            <Input value={userData.account_no ?? ""} disabled />
           </div>
           <div className="flex flex-col md:flex-row gap-4 space-y-1 items-center justify-center ">
             <Label>Name</Label>

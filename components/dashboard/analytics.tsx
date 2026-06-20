@@ -12,33 +12,24 @@ export default function AnalyticsPage() {
   const isLogin = checkIsLogin();
   const [transactionData, setTransactionData] = useState<TransactionType[]>([]);
 
-  async function fetchData(email: string) {
-    const res = await DashboardApi(email);
-       if (res?.status != 200) {
-      return;
-    } 
-    if (res?.data.data?.id) {
-      await fetchTransaction(res?.data.data.account_no);
-    }
-  }
-
-  async function fetchTransaction(account_no: string) {
-    const res = await TransactionApi(account_no);
-       if (res?.status != 200) {
-      return;
-    } 
-    setTransactionData(res?.data.data);
-  }
-
   useEffect(() => {
     async function initialize() {
       const token = getUserInfo() as JwtType;
       const id = token?.data?.id;
-      if (id) {
-        await fetchData(id);
+      if (!id) return;
+
+      const dashboard = await DashboardApi(id);
+      if (dashboard?.status !== 200) return;
+
+      const accountNumber = dashboard.data.data?.account_no;
+      if (!accountNumber) return;
+
+      const transactions = await TransactionApi(accountNumber);
+      if (transactions?.status === 200) {
+        setTransactionData(transactions.data.data);
       }
     }
-    initialize();
+    void initialize();
   }, []);
 
   if (!isLogin) {

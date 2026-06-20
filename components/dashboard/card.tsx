@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { getCardCVV, getCardInfo, getCardnumber } from "@/helper/api/dashboard";
 import { BankCard } from "../ui/bankCard";
@@ -22,6 +22,7 @@ const CardPage = () => {
       last4: "",
     },
   ]);
+  const cardDataRef = useRef(cardData);
   const [showCardNumber, setShowCardNumber] = React.useState({
     showCardNumber: false,
     selectedCard: "",
@@ -33,6 +34,10 @@ const CardPage = () => {
     selectedCard: "",
     index: 0,
   });
+
+  useEffect(() => {
+    cardDataRef.current = cardData;
+  }, [cardData]);
 
   useEffect(() => {
     async function initalize() {
@@ -57,7 +62,7 @@ const CardPage = () => {
     initalize();
   }, []);
 
-  const formatCardNumber = (value: string) => {
+  const formatCardNumber = useCallback((value: string) => {
     const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
     const matches = v.match(/\d{4,16}/g);
     const match = (matches && matches[0]) || "";
@@ -72,24 +77,25 @@ const CardPage = () => {
     } else {
       return v;
     }
-  };
-  async function fetchCardNumber(id: string, index: number) {
+  }, []);
+
+  const fetchCardNumber = useCallback(async (id: string, index: number) => {
     const card = await getCardnumber(id);
-    const allCard = [...cardData];
+    setCardData((cards) => {
+      const allCards = [...cards];
+      allCards[index].value.cardNumber = formatCardNumber(card?.data?.data);
+      return allCards;
+    });
+  }, [formatCardNumber]);
 
-    allCard[index].value.cardNumber = formatCardNumber(card?.data?.data);
-
-    setCardData(allCard);
-  }
-
-  async function fetchCardCVV(id: string, index: number) {
+  const fetchCardCVV = useCallback(async (id: string, index: number) => {
     const card = await getCardCVV(id);
-    const allCard = [...cardData];
-
-    allCard[index].value.cvv = card?.data?.data;
-
-    setCardData(allCard);
-  }
+    setCardData((cards) => {
+      const allCards = [...cards];
+      allCards[index].value.cvv = card?.data?.data;
+      return allCards;
+    });
+  }, []);
 
   //showCardNumber
   useEffect(() => {
@@ -99,11 +105,11 @@ const CardPage = () => {
     if (isShown) {
       fetchCardNumber(id, index);
     } else {
-      const allCard = [...cardData];
+      const allCard = [...cardDataRef.current];
       allCard[index].value.cardNumber = `••• ••• ••• ${allCard[index].last4}`;
       setCardData(allCard);
     }
-  }, [showCardNumber]);
+  }, [showCardNumber, fetchCardNumber]);
 
   //showCardCVV
   useEffect(() => {
@@ -113,11 +119,11 @@ const CardPage = () => {
     if (isShown) {
       fetchCardCVV(id, index);
     } else {
-      const allCard = [...cardData];
+      const allCard = [...cardDataRef.current];
       allCard[index].value.cvv = `•••`;
       setCardData(allCard);
     }
-  }, [showCardCVV]);
+  }, [showCardCVV, fetchCardCVV]);
 
   return (
     <main className="p-2">
