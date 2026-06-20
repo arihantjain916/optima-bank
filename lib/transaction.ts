@@ -1,6 +1,19 @@
 import { Transaction, TransactionMethod } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
 export type TransactionPeriod = "week" | "month" | "year";
+
+/** Accepts either the Prisma user ID or the account number used by Transaction. */
+export async function resolveAccountNumber(identifier: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [{ id: identifier }, { account_no: identifier }],
+    },
+    select: { account_no: true },
+  });
+
+  return user?.account_no ?? null;
+}
 
 export function getPeriodStart(period: TransactionPeriod, now = new Date()) {
   const start = new Date(now);

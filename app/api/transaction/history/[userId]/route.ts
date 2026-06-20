@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import {
   formatTransactions,
   getPeriodStart,
+  resolveAccountNumber,
   TransactionPeriod,
 } from "@/lib/transaction";
 
@@ -21,15 +22,25 @@ export async function GET(
     );
   }
 
+
   try {
+    const accountNumber = await resolveAccountNumber(params.userId);
+    if (!accountNumber) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const transactions = await prisma.transaction.findMany({
       where: {
         OR: [
-          { sender_acc_no: params.userId },
-          { receiver_acc_no: params.userId },
+          { sender_acc_no: accountNumber },
+          { receiver_acc_no: accountNumber },
         ],
         ...(period
-          ? { transfer_date: { gte: getPeriodStart(period as TransactionPeriod) } }
+          ? {
+              transfer_date: {
+                gte: getPeriodStart(period as TransactionPeriod),
+              },
+            }
           : {}),
       },
       orderBy: { transfer_date: "desc" },
@@ -38,7 +49,7 @@ export async function GET(
     return NextResponse.json({
       message: "Transaction history",
       period: period ?? "all",
-      data: formatTransactions(transactions, params.userId),
+      data: formatTransactions(transactions, accountNumber),
     });
   } catch (error) {
     console.error("Unable to get transaction history:", error);
