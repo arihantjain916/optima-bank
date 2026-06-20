@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const userId = headerList.get("x-user-id");
 
     if (!userId) {
-      return NextResponse.json({ data: "Invalid User" }, { status: 500 });
+      return NextResponse.json({ data: "Invalid User" }, { status: 401 });
     }
 
     const cardInfo = await prisma.card.findMany({

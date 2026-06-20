@@ -4,35 +4,65 @@ import { JwtType } from "./types/jwtPayload";
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const isApi = path.startsWith("/api");
   const isPublic =
     path === "/auth/login" ||
     path === "/auth/register" ||
     path === "/api/auth/login" ||
     path === "/api/auth/register";
-  const token = request.cookies.get("authCookie")?.value;
 
-  // logged-in user trying to access login/register
-  if (isPublic && token) {
+  // Web client sends the JWT in the authCookie; the RN app sends it as
+  // `Authorization: Bearer <token>`. Accept either.
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : undefined;
+  const token = request.cookies.get("authCookie")?.value ?? bearerToken;
+
+  // logged-in user trying to access login/register (web pages only)
+  if (isPublic && token && !isApi) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   // protected route without token
   if (!token && !isPublic) {
+    // API clients can't follow an HTML redirect — give them a clean 401.
+    if (isApi) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
   if (token) {
     try {
-      const { data } = jwt.decode(token.toString()) as JwtType;
+      const decoded = jwt.decode(token.toString()) as
+        | (JwtType & { scope?: string })
+        | null;
+      if (!decoded?.data) throw new Error("Malformed token");
+
+      // A pre-auth token (issued at login, before OTP) may ONLY reach the MFA
+      // endpoints. Anything else requires the real session token.
+      if (decoded.scope === "mfa" && !path.startsWith("/api/mfa")) {
+        if (isApi) {
+          return NextResponse.json(
+            { error: "OTP verification required" },
+            { status: 401 },
+          );
+        }
+        return NextResponse.redirect(new URL("/auth/login", request.url));
+      }
 
       const headers = new Headers(request.headers);
-      headers.set("x-user-id", data.id);
-      headers.set("x-user-email", data.email);
+      headers.set("x-user-id", decoded.data.id);
+      headers.set("x-user-email", decoded.data.email);
 
       return NextResponse.next({
         request: { headers },
       });
     } catch (err) {
+      if (isApi) {
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
       const res = NextResponse.redirect(new URL("/auth/login", request.url));
       res.cookies.delete("authCookie");
       return res;

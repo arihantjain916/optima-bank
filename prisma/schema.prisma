@@ -12,7 +12,7 @@ model User {
   name           String
   email          String   @unique
   password       String
-  account_no     String   @unique
+  account_no     String?  @unique
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
   openingBalance Int      @default(2000)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { generateToken } from "@/helper/TokenHelper";
+import { generatePreAuthToken } from "@/helper/TokenHelper";
 import { generateUniqueAccountNumber } from "@/helper/generateRandomNumber";
 
 export async function POST(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
           data: "No user find with this credentials",
         },
         {
-          status: 500,
+          status: 401,
         },
       );
     }
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
           data: "Invalid Password!!",
         },
         {
-          status: 500,
+          status: 401,
         },
       );
 
@@ -48,17 +48,16 @@ export async function POST(request: NextRequest) {
         account_no: account_no,
       },
     });
-    const returnData = {
-      ...login,
-      password: undefined,
-    };
 
-    await generateToken(login.email, login.id);
+    // Password verified, but NOT logged in yet — issue only a short-lived
+    // pre-auth token that authorizes the MFA step. The session JWT is minted
+    // after the OTP is verified.
+    const token = await generatePreAuthToken(login.email, login.id);
 
     return NextResponse.json(
       {
-        message: "Login Successfully",
-        data: returnData,
+        message: "OTP required",
+        token,
       },
       {
         status: 200,

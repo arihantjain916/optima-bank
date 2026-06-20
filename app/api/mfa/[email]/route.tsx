@@ -6,6 +6,7 @@ import { isDateExpired } from "@/helper/checkOtpExp";
 import axios from "axios";
 import { encrypt, generateUniqueCardNumber } from "@/helper/encrypt";
 import moment from "moment";
+import { generateToken } from "@/helper/TokenHelper";
 
 export async function GET(
   req: NextRequest,
@@ -31,7 +32,7 @@ export async function GET(
           data: "No user find with this credentials",
         },
         {
-          status: 500,
+          status: 401,
         },
       );
     }
@@ -125,8 +126,11 @@ export async function POST(
         { status: 500 },
       );
 
+    // OTP passed → mint the real session JWT now (also sets the cookie).
+    const token = await generateToken(params.email, fetchOtp.sender.id);
+
     return NextResponse.json(
-      { data: "OTP Verified", success: true },
+      { data: "OTP Verified", success: true, token },
       { status: 200 },
     );
   } catch (error) {

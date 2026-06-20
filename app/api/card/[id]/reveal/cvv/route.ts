@@ -12,7 +12,7 @@ export async function GET(
     const userId = headerList.get("x-user-id");
 
     if (!userId) {
-      return NextResponse.json({ data: "Invalid User" }, { status: 500 });
+      return NextResponse.json({ data: "Invalid User" }, { status: 401 });
     }
     const isCardExist = await prisma.card.findUnique({
       where: {

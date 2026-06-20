@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (checkExistingUser)
       return NextResponse.json({
-        status: 500,
+        status: 409,
         data: "User with same email already register",
       });
 
