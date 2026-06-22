@@ -1,9 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  totalamountReceived,
-  totalAmountSent,
-  totalAmount,
-} from "@/helper/calculatetotalamount";
 import { DashboardType } from "@/types/userType";
 import { IndianRupee, Users, CreditCard } from "lucide-react";
 
@@ -46,7 +41,7 @@ export function DashboardCard({ userdata }: { userdata: DashboardType }) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            ₹{totalamountReceived(userdata?.receivedTransaction!)}
+            ₹{userdata?.totalReceived ?? 0}
           </div>
         </CardContent>
       </Card>
@@ -57,7 +52,7 @@ export function DashboardCard({ userdata }: { userdata: DashboardType }) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            ₹{totalAmountSent(userdata?.sentTransaction)}
+            ₹{userdata?.totalSent ?? 0}
           </div>
         </CardContent>
       </Card>

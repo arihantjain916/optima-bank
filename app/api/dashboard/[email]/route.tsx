@@ -30,10 +30,31 @@ export async function GET(
     if (!dashboard)
       return NextResponse.json({ data: "User not found" }, { status: 404 });
 
+    const [received, sent] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: {
+          receiver_acc_no: dashboard.account_no ?? "",
+          method: "CREDIT",
+        },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          sender_acc_no: dashboard.account_no ?? "",
+          method: "DEBIT",
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
     return NextResponse.json(
       {
         message: "Dashboard Content",
-        data: dashboard,
+        data: {
+          ...dashboard,
+          totalReceived: received._sum.amount ?? 0,
+          totalSent: sent._sum.amount ?? 0,
+        },
       },
       {
         status: 200,
