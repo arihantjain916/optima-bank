@@ -17,7 +17,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight } from "lucide-react";
-import {TransactionType} from "@/types/transactionType";
+import { TransactionType } from "@/types/transactionType";
 import { DashboardType } from "@/types/userType";
 import Link from "next/link";
 
@@ -29,7 +29,7 @@ export function RecentTransaction({
   userdata: DashboardType;
 }) {
   return (
-    <Card className="xl:col-span-2">
+    <Card className="col-span-4">
       <CardHeader className="flex flex-row items-center">
         <div className="grid gap-2">
           <CardTitle>Transactions</CardTitle>
@@ -59,9 +59,7 @@ export function RecentTransaction({
             {transactionData?.map((data) => (
               <TableRow key={data.id}>
                 <TableCell>
-                  <div className="font-sm">
-                    {formatDate(data?.date)}
-                  </div>
+                  <div className="font-sm">{formatDate(data?.date)}</div>
                   <div className="font-medium">
                     {data.type + "/" + userdata?.name + "/" + data.acc_no}
                   </div>

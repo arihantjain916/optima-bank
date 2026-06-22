@@ -3,9 +3,9 @@ import { TransactionType } from "@/types/transactionType";
 
 type DataMap = Record<string, AggregatedDataType>;
 
-export async function processData(
-  transactions: TransactionType[]
-): Promise<AggregatedDataType[]> {
+export function processData(
+  transactions: TransactionType[],
+): AggregatedDataType[] {
   const dataMap: DataMap = {};
 
   transactions.forEach((transaction) => {
@@ -17,7 +17,13 @@ export async function processData(
       return;
     }
 
-    const dateString = new Date(date).toISOString().split("T")[0];
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      console.warn(`Invalid transaction date: ${date}`);
+      return;
+    }
+
+    const dateString = parsedDate.toISOString().split("T")[0];
 
     if (!dataMap[dateString]) {
       dataMap[dateString] = { date: dateString, CREDIT: 0, DEBIT: 0 };
@@ -30,7 +36,5 @@ export async function processData(
     }
   });
 
-  const data = Object.values(dataMap);
-
-  return data;
+  return Object.values(dataMap).sort((a, b) => a.date.localeCompare(b.date));
 }

@@ -9,43 +9,44 @@ export async function GET(
     params,
   }: {
     params: { email: string };
-  }
+  },
 ) {
   try {
-    const dashboard = await prisma.user.findMany({
+    const dashboard = await prisma.user.findFirst({
       where: {
         OR: [{ id: params.email }, { email: params.email }],
       },
       select: {
         name: true,
         email: true,
+        password_updated_at: true,
         account_no: true,
         id: true,
         openingBalance: true,
         currentBalance: true,
-        sentTransaction: true,
-        receivedTransaction: true,
       },
     });
 
     if (!dashboard)
       return NextResponse.json({ data: "User not found" }, { status: 404 });
 
-    return NextResponse.json({
-      message: "Dashboard Content",
-      data: dashboard[0],
-    },{
-      status: 200
-    });
+    return NextResponse.json(
+      {
+        message: "Dashboard Content",
+        data: dashboard,
+      },
+      {
+        status: 200,
+      },
+    );
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { email: string } }
+  { params }: { params: { email: string } },
 ) {
   try {
     const data = await request.json();
@@ -69,13 +70,16 @@ export async function PATCH(
 
     const updatedUser = await prisma.user.update({
       where: { id: params.email },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+        password_updated_at: new Date(),
+      },
     });
 
     if (!updatedUser) {
       return NextResponse.json(
         { data: "Error updating password" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -83,7 +87,7 @@ export async function PATCH(
 
     return NextResponse.json(
       { message: "Password Updated", data: updatedUser },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (data: any) {
     return NextResponse.json({ data: data.message }, { status: 500 });
@@ -96,7 +100,7 @@ export async function PUT(
     params,
   }: {
     params: { email: string };
-  }
+  },
 ) {
   try {
     let data;
@@ -105,7 +109,7 @@ export async function PUT(
     } catch (err: any) {
       return NextResponse.json(
         { data: "Please provide some data..." },
-        { status: 500 }
+        { status: 500 },
       );
     }
     const CheckIsUserExist = await prisma.user.findUnique({
@@ -127,15 +131,14 @@ export async function PUT(
     if (!updateUser)
       return NextResponse.json(
         { data: "Error updating user name" },
-        { status: 500 }
+        { status: 500 },
       );
 
     return NextResponse.json(
       {
         message: "User Updated",
-        data: updateUser,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (data: any) {
     return NextResponse.json({ data: data.message }, { status: 500 });

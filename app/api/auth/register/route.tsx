@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
   const saveData = {
     email,
     password: hash,
+    password_updated_at: new Date(),
     name,
     account_no: "",
   };

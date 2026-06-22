@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { processData } from "@/helper/processData";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 
 
 export function Overview({
@@ -20,23 +20,18 @@ export function Overview({
 }: {
   transactionData: TransactionType[];
 }) {
-  const [data, setData] = useState<AggregatedDataType[]>([]);
-  useEffect(() => {
-    const fetchData = async () => {
-      const result = await processData(transactionData);
-      setData(result);
-    };
-
-    fetchData();
-  }, [transactionData]);
+  const data = useMemo<AggregatedDataType[]>(
+    () => processData(transactionData),
+    [transactionData],
+  );
 
   return (
-    <Card className="w-full">
+    <Card className="w-full md:col-span-2 lg:col-span-4">
       <CardHeader>
         <CardTitle>Analytics</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={500}>
+        <ResponsiveContainer width="100%" height={360} minWidth={0}>
           <AreaChart
             width={730}
             height={250}
