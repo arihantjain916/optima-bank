@@ -20,7 +20,7 @@ const sendOTP = async (data: string): Promise<AxiosResponse<any> | null> => {
 
 const verifyOTP = async (email: string, data: string) => {
   try {
-    const login = await axios.post(`/api/mfa/${email}`, data, {
+    const login = await axios.post(`/api/mfa/${email}`, { otp: data }, {
       headers: {
         "Content-Type": "application/json",
       },

@@ -17,13 +17,14 @@ export async function middleware(request: NextRequest) {
   const bearerToken = authHeader?.startsWith("Bearer ")
     ? authHeader.slice("Bearer ".length)
     : undefined;
-  const token = request.cookies.get("authCookie")?.value ?? bearerToken;
+  const sessionToken = request.cookies.get("authCookie")?.value;
+  const mfaToken = request.cookies.get("mfaCookie")?.value;
+  const isMfaRoute = path === "/auth/verify" || path.startsWith("/api/mfa");
+  const token = isMfaRoute
+    ? mfaToken ?? sessionToken ?? bearerToken
+    : sessionToken ?? mfaToken ?? bearerToken;
 
   // logged-in user trying to access login/register (web pages only)
-  if (isPublic && token && !isApi) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
   // protected route without token
   if (!token && !isPublic) {
     // API clients can't follow an HTML redirect — give them a clean 401.
@@ -40,9 +41,19 @@ export async function middleware(request: NextRequest) {
         | null;
       if (!decoded?.data) throw new Error("Malformed token");
 
+      // A valid session can bypass login/register. A pre-auth MFA token must
+      // instead remain able to access the verification screen.
+      if (isPublic && decoded.scope !== "mfa" && !isApi) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
       // A pre-auth token (issued at login, before OTP) may ONLY reach the MFA
       // endpoints. Anything else requires the real session token.
-      if (decoded.scope === "mfa" && !path.startsWith("/api/mfa")) {
+      if (
+        decoded.scope === "mfa" &&
+        !path.startsWith("/api/mfa") &&
+        path !== "/auth/verify"
+      ) {
         if (isApi) {
           return NextResponse.json(
             { error: "OTP verification required" },

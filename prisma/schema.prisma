@@ -22,6 +22,19 @@ model User {
   receivedTransaction Transaction[] @relation("ReceivedTransactions")
   otp                 Otp[]
   cards               Card[]
+  preferences         UserPreference?
+}
+
+model UserPreference {
+  id                String   @id @default(cuid()) @map("_id")
+  userId            String   @unique
+  pushNotifications Boolean  @default(false)
+  biometricsEnabled Boolean  @default(false)
+  theme             String   @default("light")
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {

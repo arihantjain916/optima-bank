@@ -8,6 +8,10 @@ import { encrypt, generateUniqueCardNumber } from "@/helper/encrypt";
 import moment from "moment";
 import { generateToken } from "@/helper/TokenHelper";
 
+function isAuthenticatedMfaUser(req: NextRequest, email: string) {
+  return req.headers.get("x-user-email") === email;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { email: string } },
@@ -16,8 +20,8 @@ export async function GET(
   // email id + OTP
   // here email coming from params and OTP coming from func
   try {
-    if (!params.email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    if (!params.email || !isAuthenticatedMfaUser(req, params.email)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const isUserExist = await prisma.user.findUnique({
@@ -94,6 +98,10 @@ export async function POST(
   { params }: { params: { email: string } },
 ) {
   try {
+    if (!isAuthenticatedMfaUser(req, params.email)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // data contains otp
     // params contains email
     const data = await req.json();
@@ -129,10 +137,12 @@ export async function POST(
     // OTP passed → mint the real session JWT now (also sets the cookie).
     const token = await generateToken(params.email, fetchOtp.sender.id);
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { data: "OTP Verified", success: true, token },
       { status: 200 },
     );
+    response.cookies.delete("mfaCookie");
+    return response;
   } catch (error) {
     return NextResponse.json({ error: error }, { status: 500 });
   }
