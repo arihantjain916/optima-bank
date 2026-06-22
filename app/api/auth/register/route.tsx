@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 var bcrypt = require("bcryptjs");
-import { generateUniqueAccountNumber } from "@/helper/generateRandomNumber";
 
 export async function POST(request: NextRequest) {
   const data = await request.json();
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
     password: hash,
     password_updated_at: new Date(),
     name,
-    account_no: "",
+    account_no: null,
   };
 
   try {
