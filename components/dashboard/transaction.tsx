@@ -4,41 +4,29 @@ import { useState, useEffect } from "react";
 import { AllTransaction } from "./component/alltrans";
 import { DashboardType } from "@/types/userType";
 import { DashboardApi, TransactionApi } from "@/helper/api";
-import getUserInfo from "@/helper/getuserinfofromtoken";
 import { TransactionType } from "@/types/transactionType";
-import { JwtType } from "@/types/jwtPayload";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { checkIsLogin } from "@/helper/checkAuth";
 
 export default function TransactionPage() {
-  const isLogin = checkIsLogin();
   const [userdata, setUserData] = useState<DashboardType>();
   const [transactionData, setTransactionData] = useState<TransactionType[]>([]);
 
   useEffect(() => {
     async function initialize() {
-      const token = getUserInfo() as JwtType;
-      const email = token?.data?.email;
-      if (!email) return;
-
-      const dashboard = await DashboardApi(email);
+      const dashboard = await DashboardApi("me");
       if (dashboard?.status !== 200) return;
 
       const user = dashboard.data.data;
       setUserData(user);
       if (!user?.account_no) return;
 
-      const transactions = await TransactionApi(user.account_no);
+      const transactions = await TransactionApi("me");
       if (transactions?.status === 200) {
         setTransactionData(transactions.data.data);
       }
     }
     void initialize();
   }, []);
-
-  if (!isLogin) {
-    return <h1>Unauthorized</h1>;
-  }
 
 
   return (

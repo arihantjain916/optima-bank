@@ -6,6 +6,7 @@ import {
   resolveAccountNumber,
   TransactionPeriod,
 } from "@/lib/transaction";
+import { currentUserId, unauthorized } from "@/lib/current-user";
 
 const validPeriods = new Set<TransactionPeriod>(["week", "month", "year"]);
 
@@ -24,7 +25,9 @@ export async function GET(
 
 
   try {
-    const accountNumber = await resolveAccountNumber(params.userId);
+    const userId = currentUserId();
+    if (!userId) return unauthorized();
+    const accountNumber = await resolveAccountNumber(userId);
     if (!accountNumber) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

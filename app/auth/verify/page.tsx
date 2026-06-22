@@ -32,7 +32,8 @@ import { OtpPage } from "@/components/mfa/OtpPage";
 export default function OtpHome() {
   const params = useSearchParams();
   const responseParam = params.get("email");
-  const decodedResponse = decodeURIComponent(responseParam!);
+  if (!responseParam) return <p>Invalid verification request.</p>;
+  const decodedResponse = decodeURIComponent(responseParam);
   return (
     <Suspense>
       <OtpPage email={decodedResponse!} />

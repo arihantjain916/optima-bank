@@ -10,19 +10,8 @@ export async function generateToken(email: string, id: string) {
       },
     },
     process.env.JWT_SECRET!,
+    { expiresIn: "7d" },
   );
-
-  cookies().set({
-    name: "authCookie",
-    value: token,
-    // httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  // Also return the token so non-browser clients (the RN app) can store it
-  // and send it as `Authorization: Bearer <token>`.
   return token;
 }
 
@@ -42,5 +31,6 @@ export async function generatePreAuthToken(email: string, id: string) {
 
 export async function deleteToken() {
   cookies().delete("authCookie");
+  cookies().delete("mfaCookie");
   return true;
 }

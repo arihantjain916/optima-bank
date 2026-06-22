@@ -41,10 +41,10 @@ export async function GET(
       );
     }
 
-    let otp = "1234";
+    const isDevelopment = process.env.NODE_ENV === "development";
+    const otp = isDevelopment ? "1234" : generateOTP();
 
-    if (process.env.NODE_ENV == "production") {
-      otp = generateOTP();
+    if (!isDevelopment) {
       var data = {
         service_id: process.env.EMAIL_SERVICE_ID,
         template_id: process.env.EMAIL_TEMPLATE_ID,
@@ -73,7 +73,13 @@ export async function GET(
     }
 
     // save Otp to DB
-    const Expdate = new Date(Date.now());
+    // A fresh code supersedes every previously issued code for this user.
+    // Keep the development code (1234) local-only, but give it the same
+    // short lifetime and single-use behaviour as production codes.
+    const Expdate = new Date(Date.now() + 10 * 60 * 1000);
+    await prisma.otp.deleteMany({
+      where: { user_otp: params.email },
+    });
     const saveOtp = await prisma.otp.create({
       data: {
         user_otp: params.email,
@@ -105,11 +111,16 @@ export async function POST(
     // data contains otp
     // params contains email
     const data = await req.json();
+    const otp = String(data.otp ?? "");
+    if (!/^\d{4}$/.test(otp)) {
+      return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
+    }
+
     const fetchOtp = await prisma.otp.findFirst({
       where: {
-        otp: data.otp,
         user_otp: params.email,
       },
+      orderBy: { otpExp: "desc" },
       include: {
         sender: {
           select: {
@@ -123,8 +134,33 @@ export async function POST(
     if (!fetchOtp)
       return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
 
-    if (!isDateExpired(fetchOtp?.otpExp!))
+    if (isDateExpired(fetchOtp.otpExp)) {
+      await prisma.otp.deleteMany({ where: { id: fetchOtp.id } });
       return NextResponse.json({ error: "OTP Expired" }, { status: 400 });
+    }
+
+    if (fetchOtp.otp !== otp) {
+      // Limit guesses per issued code. On the fifth failed attempt the code is
+      // removed, requiring the user to request a new one.
+      const failedAttempt = await prisma.otp.updateMany({
+        where: { id: fetchOtp.id, attempts: { lt: 4 } },
+        data: { attempts: { increment: 1 } },
+      });
+      if (failedAttempt.count === 0) {
+        await prisma.otp.deleteMany({ where: { id: fetchOtp.id } });
+      }
+      return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
+    }
+
+    // Delete before completing sign-in so the code cannot be replayed. The
+    // conditional delete also ensures concurrent verification attempts only
+    // let one request proceed.
+    const consumedOtp = await prisma.otp.deleteMany({
+      where: { id: fetchOtp.id, user_otp: params.email, otp },
+    });
+    if (consumedOtp.count !== 1) {
+      return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
+    }
 
     const res = await generateCardForUsers(fetchOtp.sender);
 
@@ -141,6 +177,17 @@ export async function POST(
       { data: "OTP Verified", success: true, token },
       { status: 200 },
     );
+    // Set the web session on this exact response. Mobile clients ignore this
+    // cookie and use the returned token as an Authorization Bearer token.
+    response.cookies.set({
+      name: "authCookie",
+      value: token,
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+    });
     response.cookies.delete("mfaCookie");
     return response;
   } catch (error) {

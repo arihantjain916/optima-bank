@@ -6,37 +6,25 @@ import { DashboardType } from "@/types/userType";
 import { DashboardCard, RecentTransaction } from "./component";
 import { Overview } from "./component/overview";
 import { TransactionType } from "@/types/transactionType";
-import { checkIsLogin } from "@/helper/checkAuth";
-import getUserInfo from "@/helper/getuserinfofromtoken";
-import { JwtType } from "@/types/jwtPayload";
 export function Dashboard(props: { email?: string }) {
-  const isLogin = checkIsLogin();
   const [userdata, setUserData] = useState<DashboardType>();
   const [transactionData, setTransactionData] = useState<TransactionType[]>([]);
   useEffect(() => {
     async function initialize() {
-      const token = getUserInfo() as JwtType;
-      const email = token?.data?.email;
-      if (!email) return;
-
-      const dashboard = await DashboardApi(email);
+      const dashboard = await DashboardApi("me");
       if (dashboard?.status !== 200) return;
 
       const user = dashboard.data.data;
       setUserData(user);
       if (!user?.account_no) return;
 
-      const transactions = await TransactionApi(user.account_no);
+      const transactions = await TransactionApi("me");
       if (transactions?.status === 200) {
         setTransactionData(transactions.data.data);
       }
     }
     void initialize();
   }, []);
-
-  if (!isLogin) {
-    return <h1>Unauthorized</h1>;
-  }
 
   return (
     <div className="flex min-h-screen w-full flex-col">

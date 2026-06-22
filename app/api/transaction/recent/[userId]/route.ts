@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { formatTransactions, resolveAccountNumber } from "@/lib/transaction";
+import { currentUserId, unauthorized } from "@/lib/current-user";
 
 export async function GET(
   _request: Request,
   { params }: { params: { userId: string } },
 ) {
   try {
-    const accountNumber = await resolveAccountNumber(params.userId);
+    const userId = currentUserId();
+    if (!userId) return unauthorized();
+    const accountNumber = await resolveAccountNumber(userId);
     if (!accountNumber) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

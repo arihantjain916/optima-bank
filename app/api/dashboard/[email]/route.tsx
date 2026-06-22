@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { deleteToken } from "@/helper/TokenHelper";
+import { currentUserId, unauthorized } from "@/lib/current-user";
 
 export async function GET(
   request: NextRequest,
@@ -12,10 +13,10 @@ export async function GET(
   },
 ) {
   try {
-    const dashboard = await prisma.user.findFirst({
-      where: {
-        OR: [{ id: params.email }, { email: params.email }],
-      },
+    const userId = currentUserId();
+    if (!userId) return unauthorized();
+    const dashboard = await prisma.user.findUnique({
+      where: { id: userId },
       select: {
         name: true,
         email: true,
@@ -70,10 +71,16 @@ export async function PATCH(
   { params }: { params: { email: string } },
 ) {
   try {
+    const userId = currentUserId();
+    if (!userId) return unauthorized();
     const data = await request.json();
 
+    if (typeof data.old !== "string" || typeof data.new !== "string" || data.new.length < 8) {
+      return NextResponse.json({ data: "Invalid password" }, { status: 400 });
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: params.email },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -90,7 +97,7 @@ export async function PATCH(
     const hashedPassword = bcrypt.hashSync(data.new, salt);
 
     const updatedUser = await prisma.user.update({
-      where: { id: params.email },
+      where: { id: userId },
       data: {
         password: hashedPassword,
         password_updated_at: new Date(),
@@ -107,7 +114,7 @@ export async function PATCH(
     await deleteToken();
 
     return NextResponse.json(
-      { message: "Password Updated", data: updatedUser },
+      { message: "Password Updated" },
       { status: 200 },
     );
   } catch (data: any) {
@@ -124,6 +131,8 @@ export async function PUT(
   },
 ) {
   try {
+    const userId = currentUserId();
+    if (!userId) return unauthorized();
     let data;
     try {
       data = await request.json();
@@ -133,18 +142,24 @@ export async function PUT(
         { status: 500 },
       );
     }
-    const CheckIsUserExist = await prisma.user.findUnique({
-      where: {
-        id: params.email,
-      },
-    });
+    const allowed = ["name", "email"];
+    if (!data || typeof data !== "object" || Object.keys(data).some((key) => !allowed.includes(key))) {
+      return NextResponse.json({ data: "Invalid profile update" }, { status: 400 });
+    }
+    if (data.name !== undefined && (typeof data.name !== "string" || data.name.trim().length < 2)) {
+      return NextResponse.json({ data: "Invalid name" }, { status: 400 });
+    }
+    if (data.email !== undefined && (typeof data.email !== "string" || !/^\S+@\S+\.\S+$/.test(data.email))) {
+      return NextResponse.json({ data: "Invalid email" }, { status: 400 });
+    }
+    const CheckIsUserExist = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!CheckIsUserExist)
       return NextResponse.json({ data: "User not found" }, { status: 404 });
 
     const updateUser = await prisma.user.update({
       where: {
-        id: params.email,
+        id: userId,
       },
       data: data,
     });

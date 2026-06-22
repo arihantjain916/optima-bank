@@ -43,12 +43,13 @@ const LoginApi = async (data: LoginUserType) => {
       console.log("Error", error.message);
     }
     console.log(error.config);
+    return error.response ?? null;
   }
 };
 
 const Logout = async () => {
   try {
-    const logout = await axios.get("/api/auth/logout");
+    const logout = await axios.post("/api/auth/logout");
     return logout;
   } catch (err) {
     const error = err as AxiosError;

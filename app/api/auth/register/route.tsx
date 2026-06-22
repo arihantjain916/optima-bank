@@ -6,6 +6,16 @@ export async function POST(request: NextRequest) {
   const data = await request.json();
 
   const { password, email, name } = data;
+  if (
+    typeof email !== "string" ||
+    !/^\S+@\S+\.\S+$/.test(email) ||
+    typeof name !== "string" ||
+    name.trim().length < 2 ||
+    typeof password !== "string" ||
+    password.length < 8
+  ) {
+    return NextResponse.json({ error: "Invalid registration details" }, { status: 400 });
+  }
   var salt = await bcrypt.genSaltSync(parseInt(process.env.BCRYPT_SALT!));
   var hash = await bcrypt.hashSync(password, salt);
 
@@ -26,10 +36,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (checkExistingUser)
-      return NextResponse.json({
-        status: 409,
-        data: "User with same email already register",
-      });
+      return NextResponse.json(
+        { data: "User with same email already register" },
+        { status: 409 },
+      );
 
     const register = await prisma.user.create({
       data: saveData,

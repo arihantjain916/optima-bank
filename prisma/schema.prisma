@@ -59,6 +59,7 @@ model Otp {
   id       String   @id @default(cuid()) @map("_id")
   otp      String?
   otpExp   DateTime
+  attempts Int      @default(0)
   user_otp String
   sender   User     @relation(fields: [user_otp], references: [email], onDelete: Cascade)
 }

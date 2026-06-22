@@ -49,7 +49,6 @@ export default function TransferCard({ userData }: { userData: User }) {
       receiver_acc_no: data.receiver_acc_no,
       amount: data.amount,
       type: data.type,
-      sender_acc_no: userData?.account_no,
     };
 
     const res = await transferFund(sendData as FundTransfer);
@@ -93,7 +92,7 @@ export default function TransferCard({ userData }: { userData: User }) {
                 id="amount"
                 type="number"
                 {...register("amount")}
-                step="0.01"
+                step="1"
               />
               {errors?.amount?.message && (
                 <p className="text-red-500">

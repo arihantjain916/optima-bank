@@ -16,10 +16,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { LoginApi } from "@/helper/api";
 import { LoginUserType } from "@/types/userType";
-import { useRouter } from "next/navigation";
 
 export default function Login() {
-  const router = useRouter();
   const schema = z.object({
     email: z.string().email({ message: "Invalid email" }),
     password: z.string().min(8, { message: "Must have at least 8 character" }),
@@ -37,11 +35,14 @@ export default function Login() {
   const onSubmit = handleSubmit(async (data) => {
     const res = await LoginApi(data as LoginUserType);
     if (res?.status != 200) {
+      alert(res?.data?.error ?? res?.data?.data ?? "Unable to start MFA verification");
       return;
     }
-    alert("Login Successfully...");
     const email = encodeURIComponent(data.email);
-    router.push(`/auth/verify?email=${email}`);
+    // Use a full navigation after the login response has stored mfaCookie.
+    // This avoids a client-router race when entering the middleware-protected
+    // OTP page.
+    window.location.assign(`/auth/verify?email=${email}`);
     reset();
   });
 

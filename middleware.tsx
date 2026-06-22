@@ -1,6 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import { JwtType } from "./types/jwtPayload";
+
+type SessionPayload = JwtType & { scope?: string; exp?: number };
+
+function decodeBase64Url(value: string) {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  return Uint8Array.from(atob(padded), (character) => character.charCodeAt(0));
+}
+
+/** Verifies the HS256 JWT with Web Crypto, which is supported in middleware's
+ * Edge runtime. Node's jsonwebtoken package is only used inside API routes. */
+async function verifySessionToken(token: string): Promise<SessionPayload> {
+  const [encodedHeader, encodedPayload, encodedSignature, ...extra] = token.split(".");
+  if (!encodedHeader || !encodedPayload || !encodedSignature || extra.length) {
+    throw new Error("Malformed token");
+  }
+
+  const decoder = new TextDecoder();
+  const header = JSON.parse(decoder.decode(decodeBase64Url(encodedHeader)));
+  const payload = JSON.parse(
+    decoder.decode(decodeBase64Url(encodedPayload)),
+  ) as SessionPayload;
+  if (header.alg !== "HS256" || !payload.data || (payload.exp && payload.exp * 1000 <= Date.now())) {
+    throw new Error("Invalid token");
+  }
+
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT secret is not configured");
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"],
+  );
+  const valid = await crypto.subtle.verify(
+    "HMAC",
+    key,
+    decodeBase64Url(encodedSignature),
+    new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`),
+  );
+  if (!valid) throw new Error("Invalid token");
+  return payload;
+}
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -36,9 +79,7 @@ export async function middleware(request: NextRequest) {
 
   if (token) {
     try {
-      const decoded = jwt.decode(token.toString()) as
-        | (JwtType & { scope?: string })
-        | null;
+      const decoded = await verifySessionToken(token.toString());
       if (!decoded?.data) throw new Error("Malformed token");
 
       // A valid session can bypass login/register. A pre-auth MFA token must
@@ -76,6 +117,7 @@ export async function middleware(request: NextRequest) {
       }
       const res = NextResponse.redirect(new URL("/auth/login", request.url));
       res.cookies.delete("authCookie");
+      res.cookies.delete("mfaCookie");
       return res;
     }
   }
@@ -86,6 +128,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/auth/verify",
     "/auth/login",
     "/auth/register",
     "/api/:path*",

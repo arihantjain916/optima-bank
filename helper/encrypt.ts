@@ -115,8 +115,8 @@ export function validateDynamicCVV(
   cardId: string,
   secretKey: string,
 ): boolean {
-  const DAY_IN_MS = 24 * 60 * 60 * 1000;
-  const currentDayStep = Math.floor(Date.now() / DAY_IN_MS);
+  const CVV_WINDOW_MS = 5 * 60 * 1000;
+  const currentDayStep = Math.floor(Date.now() / CVV_WINDOW_MS);
 
   const validDays = [currentDayStep, currentDayStep - 1];
 
